@@ -1,0 +1,8 @@
+conf/inspircd/private/links.conf
+conf/inspircd/private/opers.conf
+conf/inspircd/private/server.conf
+conf/inspircd/webirc.conf
+conf/thelounge/secrets.js
+certs/*
+data/*
+logs/*

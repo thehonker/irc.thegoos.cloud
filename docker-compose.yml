@@ -1,0 +1,112 @@
+version: '2.4'
+services:
+  # ircd
+  inspircd:
+    image: docker.io/inspircd/inspircd-docker:3.15.0
+    # important, used below by certmanager container
+    container_name: inspircd
+    restart: unless-stopped
+    read_only: true
+    entrypoint: ["/inspircd/bin/inspircd", "--nofork"]
+    ports:
+      - "6697:6697"
+      - "7001:7001"
+    volumes:
+      - "./conf/inspircd:/inspircd/conf:ro"
+      - "./certs/certificates:/inspircd/certs:ro"
+      - "./data/inspircd:/inspircd/data:rw"
+      - "./logs/inspircd:/inspircd/logs:rw"
+
+  # web client
+  thelounge:
+    image: docker.io/thelounge/thelounge:4.3.1
+    restart: unless-stopped
+    read_only: true
+    volumes:
+      - "./data/thelounge:/var/opt/thelounge:rw"
+      - "./conf/thelounge/config.js:/var/opt/thelounge/config.js:ro"
+      - "./conf/thelounge/secrets.js:/private/secrets.js:ro"
+      - "./conf/thelounge/zenburn.css:/var/opt/thelounge/themes/zenburn.css:ro"
+
+  # lego-acme handling certs for traefik and inspircd
+  # traefik configured to redirect http://$domain/.well-known/acme-challenge to lego-acme container
+  traefik:
+    image: docker.io/traefik:v2.6.1
+    restart: unless-stopped
+    read_only: true
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - "./conf/traefik/static.yml:/etc/traefik/traefik.yml:ro"
+      - "./conf/traefik/dynamic.yml:/etc/traefik/dynamic/dynamic.yml:ro"
+      - "./certs/certificates:/certs:ro"
+
+  # acquires certs, puts them in ./certs
+  # keep that folder safe
+  lego-acme:
+    image: docker.io/goacme/lego:v4.9.1
+    container_name: lego-acme
+    # cron manages restarting us, see below
+    restart: "no"
+    read_only: true
+    command: [
+      "--server=https://acme-staging-v02.api.letsencrypt.org/directory",
+      "--path=/certs",
+      "--accept-tos",
+      "--http",
+      "--pem",
+      "--email=letsencrypt@thegoos.cloud",
+      "--domains=irc.thegoos.cloud",
+      "--domains=thelounge.thegoos.cloud",
+      "--domains=us-ne-01.irc.thegoos.cloud",
+      "run",
+      "--run-hook=/lego-acme-posthook.sh"
+    ]
+    volumes:
+      - "./certs:/certs:rw"
+      - "./conf/lego-acme-posthook.sh:/lego-acme-posthook.sh:ro"
+
+  # certmanager puts an inotify on CERTS_DIR,
+  # and sends IRCD_REHASH_SIGNAL to IRCD_CONTAINER_NAME when there are changes.
+  # do note that this container requies write access to docker.sock,
+  # and should be treated appropriately
+  certmanager:
+    # we build it locally so we can audit/trust the contents
+    build: ./certmanager
+    restart: unless-stopped
+    read_only: true
+    # important
+    network_mode: none
+    environment:
+      # inside the container
+      - CERTS_DIR="/certs"
+      # see container_name: inspircd above
+      - IRCD_CONTAINER_NAME="inspircd
+      # rehash signal, m_sslrehash takes SIGUSR1
+      - IRCD_REHASH_SIGNAL="SIGUSR1"
+    volumes:
+      # we give certmanager container docker.sock so it can SIGUSR1 inspircd
+      # beware: this gives this container root on the host
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
+      # and of course it needs to watch certs for updates
+      - "./certs:/certs:ro"
+
+  # cron restarts lego-acme on an interval
+  # and can be leveraged in the future for other cronjobs
+  # do note that this container requies write access to docker.sock,
+  # and should be treated appropriately
+  cron:
+    build: ./cron
+    restart: unless-stopped
+    read_only: true
+    network_mode: none
+    environment:
+      - ACME_CONTAINER_NAME="lego-acme"
+    volumes:
+      # we give cron container docker.sock so it can restart the lego-acme container
+      # beware: this gives this container root on the host
+      - "/var/run/docker.sock:/var/run/docker.sock:rw"
+      # cronjob configurations
+      # see https://wiki.alpinelinux.org/wiki/Alpine_Linux:FAQ#Why_don't_my_cron_jobs_run?
+      - "./conf/cron:/etc/periodic:ro"

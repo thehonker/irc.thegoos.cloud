@@ -1,0 +1,26 @@
+log:
+  level: "DEBUG"
+
+entryPoints:
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        domains:
+          - main: "irc.thegoos.cloud"
+            sans:
+              - "thelounge.thegoos.cloud"
+              - "us-ne-01.irc.thegoos.cloud"
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          priority: "1000" # needed for certbot to be able to overrule
+
+providers:
+  file:
+    directory: "/etc/traefik/dynamic"
+    watch: true
