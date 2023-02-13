@@ -15,6 +15,6 @@ IRCD_REHASH_SIGNAL=$(echo "${IRCD_REHASH_SIGNAL}" | tr -d '"')
 /usr/bin/inotifywait --monitor --event modify --recursive "${CERTS_DIR}" | \
 while read -r path; do
   echo "Certs changed on disk: ${path}"
-  echo "Skipping $(timeout 2 cat | wc -l) further changes"
-  /usr/bin/docker kill --signal="${IRCD_REHASH_SIGNAL}" "${IRCD_CONTAINER_NAME}"
+  echo "Ignoring $(timeout 5 cat | wc -l) further changes"
+  /usr/bin/docker kill --signal="${IRCD_REHASH_SIGNAL}" "${IRCD_CONTAINER_NAME}" || exit 1
 done
