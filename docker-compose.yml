@@ -1,0 +1,29 @@
+version: '2.4'
+services:
+# inspircd
+  irc-inspircd:
+    image: ghcr.io/g-o-o-s/irc.thegoos.cloud:ircd-spoke-prod
+    # build stanza used if unable to pull image from repo
+    build:
+      context: ./docker/inspircd
+      dockerfile: Dockerfile
+    container_name: irc-inspircd
+    restart: unless-stopped
+    read_only: true
+    ports:
+      - "6697:6697"
+      - "7001:7001"
+    volumes:
+      - "./docker/inspircd/conf:/inspircd/conf:rw"
+      - "./docker/inspircd/data:/inspircd/data:rw"
+      - "./docker/inspircd/logs:/inspircd/logs:rw"
+      - "./docker/shared/certs:/inspircd/certs:ro"
+
+# thelounge
+
+# traefik
+
+# traefik-cert-exporter or w/e the name is
+
+# inotify + bash oper
+
