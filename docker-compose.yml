@@ -14,10 +14,11 @@ services:
       - "6697:6697"
       - "7001:7001"
     volumes:
-      - "./docker/inspircd/conf:/inspircd/conf:rw"
+      - "./docker/inspircd/conf/private:/inspircd/conf/private:rw"
       - "./docker/inspircd/data:/inspircd/data:rw"
       - "./docker/inspircd/logs:/inspircd/logs:rw"
       - "./docker/shared/certs:/inspircd/certs:ro"
+      - "./docker/shared/run/inspircd:/run/inspircd:rw"
 
 # thelounge
 
