@@ -1,0 +1,23 @@
+
+#-#-#-#-#-#-#-#-#-#-#-#-  SERVER DESCRIPTION  -#-#-#-#-#-#-#-#-#-#-#-#-
+#                                                                     #
+#   Here is where you enter the information about your server.        #
+#                                                                     #
+
+<server
+        # name: Hostname of your server. Does not need to resolve, but
+        # does need to be correct syntax (something.somethingelse.tld).
+        name="hub.irc.thegoos.cloud"
+
+        # description: Server description. Spaces are allowed.
+        description="GOOSCLOUD IRC HUB"
+
+        # id: The SID to use for this server. This should not be uncommented
+        # unless there is a SID conflict. This must be three characters long.
+        # The first character must be a digit [0-9], the remaining two chars
+        # may be letters [A-Z] or digits.
+        id="R9K"
+
+        # network: Network name given on connect to clients.
+        # Should be the same on all servers on the network.
+        network="irc.thegoos.cloud">
