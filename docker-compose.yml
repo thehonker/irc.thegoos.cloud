@@ -11,10 +11,14 @@ services:
     restart: unless-stopped
     read_only: true
     ports:
+      # irc clients
       - "6697:6697"
+      # other servers
       - "7001:7001"
+      # inspircd webui
+      - "8067:8067"
     volumes:
-      - "./docker/inspircd/conf/private:/inspircd/conf/private:rw"
+      - "./docker/inspircd/conf/private:/inspircd/conf/private:ro"
       - "./docker/inspircd/data:/inspircd/data:rw"
       - "./docker/inspircd/logs:/inspircd/logs:rw"
       - "./docker/shared/certs:/inspircd/certs:ro"

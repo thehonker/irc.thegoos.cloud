@@ -1,0 +1,5 @@
+<cloak mode="half"
+       key="changeme"
+       domainparts="3"
+       prefix="net-"
+       ignorecase="no">

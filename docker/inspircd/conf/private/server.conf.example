@@ -16,7 +16,7 @@
         # unless there is a SID conflict. This must be three characters long.
         # The first character must be a digit [0-9], the remaining two chars
         # may be letters [A-Z] or digits.
-        id="R9K"
+        id="0A1"
 
         # network: Network name given on connect to clients.
         # Should be the same on all servers on the network.
